@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "tsc": "tsc",
-    "start": "node bin/www",
+    "start": "node dist/app/index",
     "build": "npx prettier --write \"**/*.{js,ts}\" && tsc --build",
     "prettier": "",
     "clean": "tsc --build --clean"
