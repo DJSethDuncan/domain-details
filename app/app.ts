@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 require('dotenv').config();
 
-// GEOIP
+// Geolocation
 app.post('/geolocation', async function (req: Request, res: Response, next: NextFunction) {
     try {
         // use ping to get ip then do lookup
