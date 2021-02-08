@@ -1,15 +1,15 @@
 async function ping(host, deadline = 10) {
   try {
-    var ping = require("ping");
+    var ping = require('ping');
     const pingResponse = await ping.promise.probe(host, {
       timeout: 10,
-      deadline: deadline,
+      deadline: deadline
     });
     const response = {
-      status: pingResponse.alive ? "alive" : "dead",
+      status: pingResponse.alive ? 'alive' : 'dead',
       time: pingResponse.time,
       packetLoss: pingResponse.packetLoss,
-      ip: pingResponse.numeric_host,
+      ip: pingResponse.numeric_host
     };
 
     return Promise.resolve(response);
@@ -20,7 +20,7 @@ async function ping(host, deadline = 10) {
 
 async function reverseDNS(host) {
   try {
-    const dns = require("dns");
+    const dns = require('dns');
     const dnsPromises = dns.promises;
 
     // let reverseLookup = await dnsPromises.reverse(host);
@@ -33,18 +33,18 @@ async function reverseDNS(host) {
 
 async function rdap(host, hostType) {
   try {
-    const axios = require("axios");
+    const axios = require('axios');
 
-    let hostIP = "";
+    let hostIP = '';
 
-    if (hostType == "domain") {
+    if (hostType == 'domain') {
       let pingResponse = await ping(host, 1);
       hostIP = pingResponse.ip;
-    } else if (hostType == "ip") {
+    } else if (hostType == 'ip') {
       hostIP = host;
     }
 
-    let rdapTargetUrl = "https://rdap.arin.net/registry/ip/" + hostIP;
+    let rdapTargetUrl = 'https://rdap.arin.net/registry/ip/' + hostIP;
 
     const rdapResponse = await axios.get(rdapTargetUrl);
 
@@ -56,15 +56,15 @@ async function rdap(host, hostType) {
 
 async function geolocation(host) {
   try {
-    const axios = require("axios");
+    const axios = require('axios');
     var options = {
-      method: "GET",
-      url: "https://ip-geolocation-ipwhois-io.p.rapidapi.com/json/",
-      params: { ip: "142.250.68.132" },
+      method: 'GET',
+      url: 'https://ip-geolocation-ipwhois-io.p.rapidapi.com/json/',
+      params: { ip: '142.250.68.132' },
       headers: {
-        "x-rapidapi-key": process.env.rapidAPIKey,
-        "x-rapidapi-host": "ip-geolocation-ipwhois-io.p.rapidapi.com",
-      },
+        'x-rapidapi-key': process.env.rapidAPIKey,
+        'x-rapidapi-host': 'ip-geolocation-ipwhois-io.p.rapidapi.com'
+      }
     };
     const geoResponse = await axios.request(options);
     return Promise.resolve(geoResponse.data);
