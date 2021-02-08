@@ -5,7 +5,7 @@
   "scripts": {
     "tsc": "tsc",
     "start": "node bin/www",
-    "build": "tsc --build",
+    "build": "npx prettier --write . && tsc --build",
     "clean": "tsc --build --clean"
   },
   "dependencies": {
