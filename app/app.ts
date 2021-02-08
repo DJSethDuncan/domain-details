@@ -1,5 +1,6 @@
 var express = require('express');
 import { Request, Response, NextFunction } from 'express';
+var DomainTools = require('../lib/domainTools')  
 var path = require('path');
 var logger = require('morgan');
 
@@ -12,13 +13,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // GEOIP
-app.post('/geoip', function (req: Request, res: Response, next: NextFunction) {
+app.post('/geolocation', async function (req: Request, res: Response, next: NextFunction) {
     try {
-        let response = {
-            requrestedDomain: '',
-            requestedDomainType: '',
-            geoIP: 'Wichita, KS'
-        }
+        // use ping to get ip then do lookup
+        let response = await DomainTools.geolocation(req.body.host)
         res.json(response)
     } catch (err) {
         res.json(err)
@@ -26,40 +24,33 @@ app.post('/geoip', function (req: Request, res: Response, next: NextFunction) {
 })
 
 // RDAP
-app.post('/rdap', function (req: Request, res: Response, next: NextFunction) {
+app.post('/rdap', async function (req: Request, res: Response, next: NextFunction) {
     try {
-        let response = {
-            requrestedDomain: '',
-            requestedDomainType: '',
-            rdap: 'Wichita, KS'
-        }
-        res.json(response)
+        let ipRegex = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/;
+        let hostType = (ipRegex.test(req.body.host)) ? 'ip' : 'domain';
+        let rdapResponse = await DomainTools.rdap(req.body.host, hostType);
+        res.json(rdapResponse)
     } catch (err) {
         res.json(err)
     }
 })
 
 // Reverse DNS
-app.post('/reversedns', function (req: Request, res: Response, next: NextFunction) {
+app.post('/reversedns', async function (req: Request, res: Response, next: NextFunction) {
     try {
-        let response = {
-            requrestedDomain: '',
-            requestedDomainType: '',
-            reverseDNS: 'Wichita, KS'
-        }
-        res.json(response)
+        let reverseDNSResponse = await DomainTools.reverseDNS(req.body.host)
+        res.json(reverseDNSResponse)
     } catch (err) {
         res.json(err)
     }
 })
 
 
-// Reverse DNS
+// Ping
 app.post('/ping', async function (req: Request, res: Response, next: NextFunction) {
     try {
-        var DomainTools = require('../lib/domainTools')  
-        let response = await DomainTools.ping(req.body.domain)
-        res.json(response)
+        let pingResponse = await DomainTools.ping(req.body.host)
+        res.json(pingResponse)
     } catch (err) {
         res.json(err)
     }
