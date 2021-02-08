@@ -12,6 +12,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+require('dotenv').config();
+
 // GEOIP
 app.post('/geolocation', async function (req: Request, res: Response, next: NextFunction) {
     try {

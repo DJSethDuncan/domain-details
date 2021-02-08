@@ -62,7 +62,7 @@ async function geolocation (host) {
             url: 'https://ip-geolocation-ipwhois-io.p.rapidapi.com/json/',
             params: { ip: '142.250.68.132' },
             headers: {
-                'x-rapidapi-key': '9Q6sIgEuammsholhpMNtnj7es06lp1FchbZjsnoqDmGMZuxiAD',
+                'x-rapidapi-key': process.env.rapidAPIKey,
                 'x-rapidapi-host': 'ip-geolocation-ipwhois-io.p.rapidapi.com'
             }
         };
