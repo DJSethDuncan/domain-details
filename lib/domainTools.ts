@@ -1,15 +1,18 @@
-async function ping(host, deadline = 10) {
+import ping from 'pingman';
+import axios from 'axios';
+import * as dns from 'dns';
+
+export async function pingHost(host: string, echos = 5): Promise<Record<string, unknown>> {
   try {
-    var ping = require('ping');
-    const pingResponse = await ping.promise.probe(host, {
+    const pingResponse = await ping(host, {
       timeout: 10,
-      deadline: deadline
+      numberOfEchos: echos
     });
     const response = {
       status: pingResponse.alive ? 'alive' : 'dead',
       time: pingResponse.time,
       packetLoss: pingResponse.packetLoss,
-      ip: pingResponse.numeric_host
+      ip: pingResponse.numericHost
     };
 
     return Promise.resolve(response);
@@ -18,9 +21,8 @@ async function ping(host, deadline = 10) {
   }
 }
 
-async function reverseDNS(host) {
+export async function reverseDNS(host: string): Promise<string[]> {
   try {
-    const dns = require('dns');
     const dnsPromises = dns.promises;
 
     // let reverseLookup = await dnsPromises.reverse(host);
@@ -31,20 +33,22 @@ async function reverseDNS(host) {
   }
 }
 
-async function rdap(host, hostType) {
+export async function rdap(host: string, hostType: string): Promise<Record<string, unknown>> {
   try {
-    const axios = require('axios');
-
-    let hostIP = '';
-
+    const response = {};
     if (hostType == 'domain') {
-      let pingResponse = await ping(host, 1);
-      hostIP = pingResponse.ip;
+      const pingResponse = await ping(host, {
+        timeout: 10
+      });
+      response['status'] = pingResponse.alive ? 'alive' : 'dead';
+      response['time'] = pingResponse.time;
+      response['packetLoss'] = pingResponse.packetLoss;
+      response['ip'] = pingResponse.numericHost;
     } else if (hostType == 'ip') {
-      hostIP = host;
+      response['ip'] = host;
     }
 
-    let rdapTargetUrl = 'https://rdap.arin.net/registry/ip/' + hostIP;
+    const rdapTargetUrl = 'https://rdap.arin.net/registry/ip/' + response['ip'];
 
     const rdapResponse = await axios.get(rdapTargetUrl);
 
@@ -54,26 +58,19 @@ async function rdap(host, hostType) {
   }
 }
 
-async function geolocation(host) {
+export async function geolocation(host: string): Promise<Record<string, unknown>> {
   try {
-    const axios = require('axios');
-    var options = {
+    const geoResponse = await axios({
       method: 'GET',
       url: 'https://ip-geolocation-ipwhois-io.p.rapidapi.com/json/',
-      params: { ip: '142.250.68.132' },
+      params: { ip: host },
       headers: {
         'x-rapidapi-key': process.env.rapidAPIKey,
         'x-rapidapi-host': 'ip-geolocation-ipwhois-io.p.rapidapi.com'
       }
-    };
-    const geoResponse = await axios.request(options);
+    });
     return Promise.resolve(geoResponse.data);
   } catch (err) {
     return Promise.reject(err);
   }
 }
-
-module.exports.ping = ping;
-module.exports.reverseDNS = reverseDNS;
-module.exports.rdap = rdap;
-module.exports.geolocation = geolocation;
