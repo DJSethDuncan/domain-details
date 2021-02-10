@@ -23,8 +23,10 @@ export async function pingHost(host: string, echos = 5): Promise<Record<string, 
 
 export async function reverseDNS(host: string): Promise<string[]> {
   try {
+    if (getHostType(host) == 'domain') {
+      return Promise.resolve([host]);
+    }
     const dnsPromises = dns.promises;
-
     // let reverseLookup = await dnsPromises.reverse(host);
     const reverseLookup = await dnsPromises.reverse(host);
     return Promise.resolve(reverseLookup);
@@ -33,9 +35,10 @@ export async function reverseDNS(host: string): Promise<string[]> {
   }
 }
 
-export async function rdap(host: string, hostType: string): Promise<Record<string, unknown>> {
+export async function rdap(host: string): Promise<Record<string, unknown>> {
   try {
     const response = {};
+    const hostType = getHostType(host);
     if (hostType == 'domain') {
       const pingResponse = await ping(host, {
         timeout: 10
@@ -73,4 +76,9 @@ export async function geolocation(host: string): Promise<Record<string, unknown>
   } catch (err) {
     return Promise.reject(err);
   }
+}
+
+export function getHostType(host: string): string {
+  const ipRegex = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/;
+  return ipRegex.test(host) ? 'ip' : 'domain';
 }

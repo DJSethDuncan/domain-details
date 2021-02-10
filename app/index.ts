@@ -3,7 +3,6 @@ import http from 'http';
 import express from 'express';
 import path from 'path';
 import logger from 'morgan';
-import * as appTools from '../lib/appTools';
 import * as domainTools from '../lib/domainTools';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -26,16 +25,16 @@ if (cluster.isMaster) {
 } else {
   // set up app
   const app = express();
+  const port = process.env.PORT || '3001';
   app.use(logger('dev'));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
   app.use(express.static(path.join(__dirname, 'public')));
-  const port = appTools.normalizePort(process.env.PORT || '3001');
   app.set('port', port);
 
   // Geolocation
-  app.post('/geolocation', async function (req, res, next) {
+  app.post('/geolocation', async function (req, res) {
     try {
       // use ping to get ip then do lookup
       const response = await domainTools.geolocation(req.body.host);
@@ -46,11 +45,9 @@ if (cluster.isMaster) {
   });
 
   // RDAP
-  app.post('/rdap', async function (req, res, next) {
+  app.post('/rdap', async function (req, res) {
     try {
-      const ipRegex = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/;
-      const hostType = ipRegex.test(req.body.host) ? 'ip' : 'domain';
-      const rdapResponse = await domainTools.rdap(req.body.host, hostType);
+      const rdapResponse = await domainTools.rdap(req.body.host);
       res.json(rdapResponse);
     } catch (err) {
       res.json(err);
@@ -58,7 +55,7 @@ if (cluster.isMaster) {
   });
 
   // Reverse DNS
-  app.post('/reversedns', async function (req, res, next) {
+  app.post('/reversedns', async function (req, res) {
     try {
       const reverseDNSResponse = await domainTools.reverseDNS(req.body.host);
       res.json(reverseDNSResponse);
@@ -68,7 +65,7 @@ if (cluster.isMaster) {
   });
 
   // Ping
-  app.post('/ping', async function (req, res, next) {
+  app.post('/ping', async function (req, res) {
     try {
       const pingResponse = await domainTools.pingHost(req.body.host);
       res.json(pingResponse);
@@ -80,8 +77,12 @@ if (cluster.isMaster) {
   const server = http.createServer(app);
 
   server.listen(port);
-  server.on('error', appTools.onError);
-  server.on('listening', function () {
-    console.log('listening');
+
+  server.on('error', error => {
+    throw error;
+  });
+
+  server.on('listening', () => {
+    console.log('listening on port ' + port);
   });
 }
