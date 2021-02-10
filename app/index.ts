@@ -48,9 +48,7 @@ if (cluster.isMaster) {
   // RDAP
   app.post('/rdap', async function (req, res, next) {
     try {
-      const ipRegex = /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/;
-      const hostType = ipRegex.test(req.body.host) ? 'ip' : 'domain';
-      const rdapResponse = await domainTools.rdap(req.body.host, hostType);
+      const rdapResponse = await domainTools.rdap(req.body.host);
       res.json(rdapResponse);
     } catch (err) {
       res.json(err);

@@ -5,9 +5,8 @@
   "scripts": {
     "tsc": "tsc",
     "start": "node dist/app/index",
-    "build": "npx prettier --write \"**/*.{js,ts}\" && tsc --build",
-    "prettier": "",
-    "clean": "tsc --build --clean"
+    "build": "npx prettier --write \"**/*.{js,ts}\" && tsc --build && npm run test",
+    "test": "mocha -r ts-node/register tests/**/*.test.ts --timeout 15000"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -19,17 +18,22 @@
   },
   "devDependencies": {
     "@swimlane/prettier-config-swimlane": "^3.0.3",
+    "@types/chai": "^4.2.14",
     "@types/express": "^4.17.11",
+    "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.25",
     "@types/ping": "^0.2.0",
     "@typescript-eslint/eslint-plugin": "^4.14.2",
     "@typescript-eslint/parser": "^4.14.2",
     "axios": "^0.21.1",
+    "chai": "^4.3.0",
     "eslint": "^7.19.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
+    "mocha": "^8.2.1",
     "prettier": "^2.2.1",
     "prettier-eslint": "^12.0.0",
+    "ts-node": "^9.1.1",
     "typescript": "^4.1.3"
   }
 }
