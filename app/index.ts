@@ -77,12 +77,12 @@ if (cluster.isMaster) {
   const server = http.createServer(app);
 
   server.listen(port);
-  
+
   server.on('error', error => {
     throw error;
   });
 
   server.on('listening', () => {
-    console.log('listening');
+    console.log('listening on port ' + port);
   });
 }
