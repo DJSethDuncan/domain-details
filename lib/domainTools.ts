@@ -63,10 +63,18 @@ export async function rdap(host: string): Promise<Record<string, unknown>> {
 
 export async function geolocation(host: string): Promise<Record<string, unknown>> {
   try {
+    let ipAddress: any = '';
+    let hostType = getHostType(host);
+    if (hostType == 'domain') {
+      const pingResponse = await pingHost(host, 1);
+      ipAddress = pingResponse.numericHost;
+    } else if (hostType == 'ip') {
+      ipAddress = host;
+    }
     const geoResponse = await axios({
       method: 'GET',
       url: 'https://ip-geolocation-ipwhois-io.p.rapidapi.com/json/',
-      params: { ip: host },
+      params: { ip: ipAddress },
       headers: {
         'x-rapidapi-key': process.env.rapidAPIKey,
         'x-rapidapi-host': 'ip-geolocation-ipwhois-io.p.rapidapi.com'
