@@ -29,9 +29,13 @@ if (cluster.isMaster) {
   app.use(logger('dev'));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
-  app.use(express.json());
   app.use(express.static(path.join(__dirname, 'public')));
   app.set('port', port);
+
+  app.post('*', function (req, res, next) {
+    console.log('request made to worker ' + cluster.worker.id + ':pid ' + cluster.worker.process.pid);
+    next();
+  });
 
   // Geolocation
   app.post('/geolocation', async function (req, res) {
