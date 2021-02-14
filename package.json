@@ -2,18 +2,21 @@
   "name": "domain-service",
   "version": "0.0.0",
   "private": true,
+  "author": "Seth Duncan",
+  "engines": {
+    "node": ">=12.2.0"
+  },
   "scripts": {
     "tsc": "tsc",
     "start": "node dist/app/index",
-    "build": "npx prettier --write \"**/*.{js,ts}\" && tsc --build",
+    "build": "npx prettier --write \"**/*.{js,ts}\" && npm run test && tsc --build",
     "test": "mocha -r ts-node/register tests/**/*.test.ts --timeout 15000"
   },
   "dependencies": {
-    "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "dotenv": "^8.2.0",
     "express": "~4.16.1",
-    "morgan": "~1.9.1",
+    "joi": "^17.4.0",
     "pingman": "^1.1.1"
   },
   "devDependencies": {
