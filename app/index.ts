@@ -1,8 +1,8 @@
 import cluster from 'cluster';
 import http from 'http';
+import Joi from 'joi';
 import express from 'express';
 import path from 'path';
-import logger from 'morgan';
 import * as domainTools from '../lib/domainTools';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -23,25 +23,30 @@ if (cluster.isMaster) {
     cluster.fork();
   });
 } else {
-  // set up app
+  // VALIDATION SCHEMA
+  const domainSchema = Joi.object({
+    host: Joi.alternatives().try(Joi.string().domain(), Joi.string().ip()).required(),
+    service: Joi.string() // helpful for identifying which request is being returned
+  });
+
+  // SET UP APP
   const app = express();
   const port = process.env.PORT || '3001';
-  app.use(logger('dev'));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(express.static(path.join(__dirname, 'public')));
   app.set('port', port);
 
-  app.post('*', function (req, res, next) {
+  app.get('*', function (req, res, next) {
     console.log('request made to worker ' + cluster.worker.id + ':pid ' + cluster.worker.process.pid);
     next();
   });
 
   // Geolocation
-  app.post('/geolocation', async function (req, res) {
+  app.get('/geolocation', async function (req, res) {
     try {
-      // use ping to get ip then do lookup
-      const response = await domainTools.geolocation(req.body.host);
+      const validatedQuery = await domainSchema.validateAsync(req.query);
+      const response = await domainTools.geolocation(validatedQuery.host);
       res.json(response);
     } catch (err) {
       res.json(err);
@@ -49,9 +54,10 @@ if (cluster.isMaster) {
   });
 
   // RDAP
-  app.post('/rdap', async function (req, res) {
+  app.get('/rdap', async function (req, res) {
     try {
-      const rdapResponse = await domainTools.rdap(req.body.host);
+      const validatedQuery = await domainSchema.validateAsync(req.query);
+      const rdapResponse = await domainTools.rdap(validatedQuery.host);
       res.json(rdapResponse);
     } catch (err) {
       res.json(err);
@@ -59,9 +65,10 @@ if (cluster.isMaster) {
   });
 
   // Reverse DNS
-  app.post('/reversedns', async function (req, res) {
+  app.get('/reversedns', async function (req, res) {
     try {
-      const reverseDNSResponse = await domainTools.reverseDNS(req.body.host);
+      const validatedQuery = await domainSchema.validateAsync(req.query);
+      const reverseDNSResponse = await domainTools.reverseDNS(validatedQuery.host);
       res.json(reverseDNSResponse);
     } catch (err) {
       res.json(err);
@@ -69,9 +76,10 @@ if (cluster.isMaster) {
   });
 
   // Ping
-  app.post('/ping', async function (req, res) {
+  app.get('/ping', async function (req, res) {
     try {
-      const pingResponse = await domainTools.pingHost(req.body.host);
+      const validatedQuery = await domainSchema.validateAsync(req.query);
+      const pingResponse = await domainTools.pingHost(validatedQuery.host);
       res.json(pingResponse);
     } catch (err) {
       res.json(err);
