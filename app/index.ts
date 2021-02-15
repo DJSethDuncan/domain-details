@@ -2,7 +2,6 @@ import cluster from 'cluster';
 import http from 'http';
 import Joi from 'joi';
 import express from 'express';
-import path from 'path';
 import * as domainTools from '../lib/domainTools';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -30,12 +29,7 @@ if (cluster.isMaster) {
   });
 
   // SET UP APP
-  const app = express();
-  const port = process.env.PORT || '3001';
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: false }));
-  app.use(express.static(path.join(__dirname, 'public')));
-  app.set('port', port);
+  const app: express.Application = express();
 
   app.get('*', function (req, res, next) {
     console.log('request made to worker ' + cluster.worker.id + ':pid ' + cluster.worker.process.pid);
@@ -43,56 +37,60 @@ if (cluster.isMaster) {
   });
 
   // Geolocation
-  app.get('/geolocation', async function (req, res) {
+  app.get('/geolocation', async function (req, res, next) {
     try {
       const validatedQuery = await domainSchema.validateAsync(req.query);
       const response = await domainTools.geolocation(validatedQuery.host);
       res.json(response);
     } catch (err) {
-      res.json(err);
+      next(err);
     }
   });
 
   // RDAP
-  app.get('/rdap', async function (req, res) {
+  app.get('/rdap', async function (req, res, next) {
     try {
       const validatedQuery = await domainSchema.validateAsync(req.query);
       const rdapResponse = await domainTools.rdap(validatedQuery.host);
       res.json(rdapResponse);
     } catch (err) {
-      res.json(err);
+      next(err);
     }
   });
 
   // Reverse DNS
-  app.get('/reversedns', async function (req, res) {
+  app.get('/reversedns', async function (req, res, next) {
     try {
       const validatedQuery = await domainSchema.validateAsync(req.query);
       const reverseDNSResponse = await domainTools.reverseDNS(validatedQuery.host);
       res.json(reverseDNSResponse);
     } catch (err) {
-      res.json(err);
+      next(err);
     }
   });
 
   // Ping
-  app.get('/ping', async function (req, res) {
+  app.get('/ping', async function (req, res, next) {
     try {
       const validatedQuery = await domainSchema.validateAsync(req.query);
       const pingResponse = await domainTools.pingHost(validatedQuery.host);
       res.json(pingResponse);
     } catch (err) {
-      res.json(err);
+      next(err);
     }
   });
 
-  const server = http.createServer(app);
-
-  server.listen(port);
-
-  server.on('error', error => {
-    throw error;
+  // RETURN ERRORS
+  app.use(function (err, req, res, next) {
+    const errResponse = {
+      error: err
+    };
+    res.status(500).json(errResponse);
   });
+
+  const server = http.createServer(app);
+  const port = process.env.PORT || 3001;
+  server.listen(port);
 
   server.on('listening', () => {
     console.log('listening on port ' + port);
