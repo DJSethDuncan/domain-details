@@ -9,7 +9,7 @@
   "scripts": {
     "tsc": "tsc",
     "start": "node dist/app/index",
-    "build": "npx prettier --write \"**/*.{js,ts}\" && tsc --build",
+    "build": "npx prettier --write \"**/*.{js,ts}\" && npm run test && tsc --build",
     "test": "mocha -r ts-node/register tests/**/*.test.ts --timeout 15000"
   },
   "dependencies": {
